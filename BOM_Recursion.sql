@@ -12,7 +12,8 @@ WITH BOM_CTE
 	Sort,		--排序
 	CreatedOn,	--创建日期
 	TopLayer,	--顶层（产品）
-	Name		--子项名称
+	Name,		--子项名称
+	Lev			--文字描述顺序(父项->子项1-子项2-...)
 )		
 AS
 (						
@@ -26,6 +27,7 @@ AS
 			CreatedOn,
 			ChildId	--这里是顶层的占位
 			,Name
+			,Convert(varchar(255),Name)
 	FROM	BOM	E --基础部分
 	WHERE ParentId IS  NULL	--顶层
 	UNION ALL					
@@ -38,9 +40,10 @@ AS
 			CONVERT(VARCHAR(255),ltrim(rtrim(Sort))+'->'+ltrim(rtrim(R.ChildId))),	
 			R.CreatedOn	,
 			TopLayer,	--和参数TopLayer要一致
-			R.Name
+			R.Name,
+			CONVERT(varchar(255),R.Name+'->'+Lev)
 	FROM	BOM	R  --循环部分		
-		INNER JOIN	BOM_CTE	CTE ON	R.ParentId=CTE.ChildId
+	INNER JOIN	BOM_CTE	CTE ON	R.ParentId=CTE.ChildId
 ) 
 
 SELECT	ROW_NUMBER ()over(order by Sort)as Num,	--序号
@@ -54,7 +57,8 @@ SELECT	ROW_NUMBER ()over(order by Sort)as Num,	--序号
 		CreatedOn,	
 		Sort,
 		TopLayer,	--和参数TopLayer要一致才能出现顶层物料（即父项为null的）
-		Name
+		Name,
+		Lev
 FROM	BOM_CTE 
 --创建数据表及插入测试数据 开始--
 --CreatedOn：2013.12.13 08:55
