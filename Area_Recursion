@@ -1,0 +1,31 @@
+-- 省市区
+
+WITH Recursion(PId, Id, Layer, Name, Ext) 
+AS (
+	SELECT     PId, Id, 1 AS Layer, Name, CONVERT(VARCHAR(255), Name) AS Name
+	FROM       dbo.Area AS Parent
+	WHERE     (PId IS NULL)
+	UNION ALL
+	SELECT     Child.PId, Child.Id, REC.Layer + 1 AS Layer, Child.Name, CONVERT(VARCHAR(255), REC.Ext + '->' + Child.Name) AS Ext
+	FROM       dbo.Area AS Child 
+		INNER JOIN	Recursion AS REC 
+		ON Child.PId = REC.ID
+	)
+
+-- 运行递归
+SELECT     Id, Name, Layer, Ext
+FROM       Recursion
+
+--创建数据表及插入测试数据 开始--
+
+CREATE TABLE [dbo].[Area] (
+  [Id] [int] NOT NULL,
+	[Name] [nvarchar](max) NOT NULL,
+	[PId] [int] NULL)
+GO
+INSERT INTO Area1 VALUES(2000,'Area00',NULL)
+INSERT INTO Area1 VALUES(2001,'Area1',2000)
+INSERT INTO Area1 VALUES(2002,'Area2',2000)
+INSERT INTO Area1 VALUES(2003,'Area3',2001)
+
+--创建数据表及插入测试数据 结束--
